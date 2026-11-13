@@ -5,4 +5,29 @@
 <input id="url" value="http://127.0.0.1:8001/api/animales/"><button id="enviar">Enviar</button>
 <h2>Cuerpo enviado (JSON)</h2><textarea id="cuerpo"></textarea><p>Content-Type: application/json</p>
 <h2>Respuesta</h2><p id="estado">Sin ejecutar</p><pre id="respuesta"></pre></main>
-<script>document.querySelector('#enviar').onclick=async()=>{let method=document.querySelector('#metodo').value;let body=document.querySelector('#cuerpo').value;document.querySelector('#estado').textContent='Enviando...';try{let r=await fetch(document.querySelector('#url').value,{method,headers:{'Content-Type':'application/json'},...(['POST','PUT'].includes(method)?{body}: {})});let data=await r.json();document.querySelector('#estado').textContent=r.status+' '+r.statusText+' | '+r.headers.get('Content-Type');document.querySelector('#respuesta').textContent=JSON.stringify(data,null,2)}catch(e){document.querySelector('#estado').textContent='Error';document.querySelector('#respuesta').textContent=e.message}};</script></html>
+<script>document.querySelector('#enviar').onclick=async()=>{let method=document.querySelector('#metodo').value;let body=document.querySelector('#cuerpo').value;document.querySelector('#estado').textContent='Enviando...';try{let r=await fetch(document.querySelector('#url').value,{method,headers:{'Content-Type':'application/json'},...(['POST','PUT'].includes(method)?{body}: {})});let data=await r.json();document.querySelector('#estado').textContent=r.status+' '+r.statusText+' | '+r.headers.get('Content-Type');document.querySelector('#respuesta').textContent=JSON.stringify(data,null,2)}catch(e){document.querySelector('#estado').textContent='Error';document.querySelector('#respuesta').textContent=e.message}};</script>
+<script>
+const panel=document.createElement('div');
+panel.style='padding:12px 0 20px;display:flex;gap:6px;flex-wrap:wrap';
+const labels=['1. Crear','2. Listar','3. Consultar ID','4. Actualizar','5. Datos inválidos','6. Eliminar'];
+let demoId=localStorage.getItem('animalDemoId');
+for(let i=0;i<labels.length;i++){
+ const b=document.createElement('button'); b.textContent=labels[i];
+ b.onclick=async()=>{
+  if([2,3,5].includes(i)&&!demoId){alert('Primero pulsa 1. Crear');return;}
+  const base='http://127.0.0.1:8001/api/animales/';
+  document.querySelector('#metodo').value=['POST','GET','GET','PUT','POST','DELETE'][i];
+  document.querySelector('#url').value=base+([2,3,5].includes(i)?demoId+'/':'');
+  const data=i===0?{nombre:'Max',especie:'Perro',raza:'Labrador',edad:3}:i===3?{nombre:'Max',especie:'Perro',raza:'Labrador',edad:4}:i===4?{nombre:'',especie:'Perro',edad:-1}:null;
+  document.querySelector('#cuerpo').value=data?JSON.stringify(data,null,2):'';
+  await document.querySelector('#enviar').onclick();
+  if(i===0&&document.querySelector('#estado').textContent.startsWith('201')){
+   demoId=JSON.parse(document.querySelector('#respuesta').textContent).id;
+   localStorage.setItem('animalDemoId',demoId);
+  }
+ };
+ panel.appendChild(b);
+}
+document.querySelector('main').insertBefore(panel,document.querySelector('#metodo'));
+</script>
+</html>
